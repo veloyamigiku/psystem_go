@@ -3,12 +3,18 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 )
 
 func main() {
 
+	serverPort := os.Getenv("PORT")
+	if serverPort == "" {
+		serverPort = "8080"
+	}
+
 	server := http.Server{
-		Addr: ":8080",
+		Addr: ":" + serverPort,
 	}
 	http.HandleFunc("/psystem/signup", handleSignup)
 	http.HandleFunc("/psystem/login", handleLogin)
