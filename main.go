@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 func main() {
@@ -94,10 +97,56 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("signup")
 
+	// リクエスト本体からJSONオブジェクトを取得する。
+	postJSON, err := getPostJSON(r)
+	if err != nil {
+		fmt.Println(err)
+		internalError(w, `{"Result": false}`)
+		return
+	}
+	// debug code
+	fmt.Printf("user:%s\n", postJSON["user"])
+	fmt.Printf("password:%s\n", postJSON["password"])
+	fmt.Printf("username:%s\n", postJSON["username"])
+
 	// 登録処理
 
 	// 登録処理の結果を出力する。
 	output := ([]byte)(`{"Result": true}`)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(output)
+}
+
+// リクエスト本体（JSON文字列）をJSONオブジェクトに変換して返却する。
+func getPostJSON(r *http.Request) (
+	postJSON map[string]interface{},
+	err error) {
+
+	// リクエストヘッダをチェックする。
+	// Content-Typeが"application/json"であることを確認する。
+	if r.Header.Get("Content-Type") != "application/json" {
+		return nil, fmt.Errorf("Content-Type is not application/json.")
+	}
+
+	// リクエストヘッダをチェックする。
+	// Content-Lengthが数値であること確認する。
+	length, err := strconv.Atoi(r.Header.Get("Content-Length"))
+	if err != nil {
+		return nil, err
+	}
+
+	// リクエスト本体を取得する。
+	body := make([]byte, length)
+	length, err = r.Body.Read(body)
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	// リクエスト本体をJSONオブジェクト(map[string]interface)に変換する。
+	err = json.Unmarshal(body[:length], &postJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	return postJSON, nil
 }
