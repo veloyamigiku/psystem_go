@@ -7,7 +7,18 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
+
+// User usersテーブルの構造体。
+type User struct {
+	ID       int    `gorm:"PRIMARY_KEY";"AUTO_INCREMENT"`
+	Name     string `gorm:"NOT NULL"`
+	Username string `gorm:"NOT NULL"`
+	Password string `gorm:"NOT NULL"`
+}
 
 func main() {
 
@@ -105,11 +116,30 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// debug code
-	fmt.Printf("user:%s\n", postJSON["user"])
-	fmt.Printf("password:%s\n", postJSON["password"])
-	fmt.Printf("username:%s\n", postJSON["username"])
+	user := postJSON["user"].(string)
+	password := postJSON["password"].(string)
+	username := postJSON["username"].(string)
+	fmt.Printf("user:%s\n", user)
+	fmt.Printf("password:%s\n", password)
+	fmt.Printf("username:%s\n", username)
 
 	// 登録処理
+
+	// DBに接続する。
+	db, err := gorm.Open(
+		"postgres",
+		"host=D8C74545-postgres port=5432 user=psystem dbname=psystem password=psystem sslmode=disable")
+	if err != nil {
+		panic(err)
+		defer db.Close()
+	}
+	defer db.Close()
+	// 利用者情報を登録する。
+	db.Create(&User{
+		Name:     user,
+		Username: username,
+		Password: password,
+	})
 
 	// 登録処理の結果を出力する。
 	output := ([]byte)(`{"Result": true}`)
