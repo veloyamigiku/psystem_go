@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/veloyamigiku/psystem/src/db"
+	"github.com/veloyamigiku/psystem/internal/db"
 )
 
 func main() {
