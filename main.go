@@ -8,8 +8,14 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/veloyamigiku/psystem/internal/auth"
 	"github.com/veloyamigiku/psystem/internal/db"
 )
+
+type RegisterJwt struct {
+	Token  string `json:"token"`
+	Result bool   `json:"result"`
+}
 
 func main() {
 
@@ -22,10 +28,19 @@ func main() {
 		Addr: ":" + serverPort,
 	}
 	http.HandleFunc("/psystem/signup", handleSignup)
+	http.HandleFunc("/psystem/issue_jwt_for_signup", handleIssueJwtForSignup)
 	http.HandleFunc("/psystem/login", handleLogin)
 	http.HandleFunc("/psystem/point/current", handleCurrentPoint)
 	http.HandleFunc("/psystem/point/log", handlePointLog)
 	server.ListenAndServe()
+
+}
+
+func response(w http.ResponseWriter, jsonStruct interface{}) {
+
+	responseBytes, _ := json.Marshal(jsonStruct)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(responseBytes)
 
 }
 
@@ -86,6 +101,25 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	resultLogin := ([]byte)(`{"Result": true, "Token": "hogehoge"}`)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(resultLogin)
+}
+
+// リクエストハンドラ（利用者登録用_トークン発行）
+func handleIssueJwtForSignup(w http.ResponseWriter, r *http.Request) {
+
+	registerJwt := RegisterJwt{
+		Result: false,
+	}
+
+	if r.Method != http.MethodGet {
+		response(w, registerJwt)
+		return
+	}
+
+	tokenString := auth.IssueJwt()
+	registerJwt.Result = true
+	registerJwt.Token = tokenString
+
+	response(w, registerJwt)
 }
 
 // リクエストハンドラ（利用者登録）。
