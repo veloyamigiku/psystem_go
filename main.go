@@ -17,6 +17,10 @@ type RegisterJwt struct {
 	Result bool   `json:"result"`
 }
 
+type RegisterResult struct {
+	Result bool `json:"result"`
+}
+
 func main() {
 
 	serverPort := os.Getenv("PORT")
@@ -125,9 +129,13 @@ func handleIssueJwtForSignup(w http.ResponseWriter, r *http.Request) {
 // リクエストハンドラ（利用者登録）。
 func handleSignup(w http.ResponseWriter, r *http.Request) {
 
+	registerResult := RegisterResult{
+		Result: false,
+	}
+
 	// リクエストメソッドを確認する。
 	if r.Method != http.MethodPost {
-		internalError(w, `{"Result": false}`)
+		response(w, registerResult)
 		return
 	}
 
@@ -137,7 +145,7 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 	postJSON, err := getPostJSON(r)
 	if err != nil {
 		fmt.Println(err)
-		internalError(w, `{"Result": false}`)
+		response(w, registerResult)
 		return
 	}
 	// debug code
@@ -148,6 +156,16 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("paramPassword:%s\n", paramPassword)
 	fmt.Printf("paramUsername:%s\n", paramUsername)
 
+	// リクエストヘッダ（Authorization）を取得する。
+	authorization := r.Header.Get("Authorization")
+	fmt.Printf("Authorization:%s\n", authorization)
+	// JWTトークンを検証する。
+	if !auth.ValidateJwt(authorization) {
+		fmt.Println(fmt.Errorf("JWT is invalid"))
+		response(w, registerResult)
+		return
+	}
+
 	// 登録処理
 	err = db.Register(
 		paramName,
@@ -155,14 +173,13 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 		paramPassword)
 	if err != nil {
 		fmt.Println(err)
-		internalError(w, `{"Result": false}`)
+		response(w, registerResult)
 		return
 	}
 
 	// 登録処理の結果を出力する。
-	output := ([]byte)(`{"Result": true}`)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(output)
+	registerResult.Result = true
+	response(w, registerResult)
 }
 
 // リクエスト本体（JSON文字列）をJSONオブジェクトに変換して返却する。

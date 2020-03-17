@@ -28,7 +28,7 @@ func IssueJwt() (tokenString string) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["name"] = "test"
 	claims["admin"] = true
-	claims["exp"] = time.Now().Add(time.Minute * 1).Unix()
+	claims["exp"] = time.Now().Add(time.Minute * 5).Unix()
 
 	tokenString, err = token.SignedString(signKey)
 	if err != nil {
