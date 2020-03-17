@@ -2,7 +2,7 @@ package auth
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -11,10 +11,12 @@ import (
 func IssueJwt() (tokenString string) {
 
 	// 秘密鍵の読み込み。
-	signBytes, err := ioutil.ReadFile("/root/go/src/github.com/veloyamigiku/psystem/demo.rsa")
-	if err != nil {
-		panic(err)
+	// ssh-keygen -t rsa
+	sign := os.Getenv("PSYSTEM_RSA")
+	if sign == "" {
+		panic(fmt.Errorf("env[PSYSTEM_RSA] not found"))
 	}
+	signBytes := []byte(sign)
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
 	if err != nil {
 		panic(err)
@@ -39,10 +41,12 @@ func IssueJwt() (tokenString string) {
 func ValidateJwt(tokenString string) bool {
 
 	// 公開鍵の読み込み。
-	verifyByte, err := ioutil.ReadFile("/root/go/src/github.com/veloyamigiku/psystem/demo.rsa.pub.pkcs8")
-	if err != nil {
-		panic(err)
+	// ssh-keygen -f (pub_key_name) -e -m pkcs8 > (pub_key_name).pkcs8
+	verify := os.Getenv("PSYSTEM_RSA_PUB_PKCS8")
+	if verify == "" {
+		panic(fmt.Errorf("env[PSYSTEM_RSA_PUB_PKCS8] not found"))
 	}
+	verifyByte := []byte(verify)
 	verifyKey, err := jwt.ParseRSAPublicKeyFromPEM(verifyByte)
 	if err != nil {
 		panic(err)
