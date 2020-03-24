@@ -8,7 +8,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-func IssueJwt() (tokenString string) {
+func IssueJwt(expMinute int) (tokenString string) {
 
 	// 秘密鍵の読み込み。
 	// ssh-keygen -t rsa
@@ -28,7 +28,7 @@ func IssueJwt() (tokenString string) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["name"] = "test"
 	claims["admin"] = true
-	claims["exp"] = time.Now().Add(time.Minute * 5).Unix()
+	claims["exp"] = time.Now().Add(time.Duration(expMinute) * time.Minute).Unix()
 
 	tokenString, err = token.SignedString(signKey)
 	if err != nil {

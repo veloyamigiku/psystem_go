@@ -31,8 +31,8 @@ func main() {
 	server := http.Server{
 		Addr: ":" + serverPort,
 	}
-	http.HandleFunc("/psystem/signup", handleSignup)
 	http.HandleFunc("/psystem/issue_jwt_for_signup", handleIssueJwtForSignup)
+	http.HandleFunc("/psystem/signup", handleSignup)
 	http.HandleFunc("/psystem/login", handleLogin)
 	http.HandleFunc("/psystem/point/current", handleCurrentPoint)
 	http.HandleFunc("/psystem/point/log", handlePointLog)
@@ -119,7 +119,7 @@ func handleIssueJwtForSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenString := auth.IssueJwt()
+	tokenString := auth.IssueJwt(5)
 	registerJwt.Result = true
 	registerJwt.Token = tokenString
 
