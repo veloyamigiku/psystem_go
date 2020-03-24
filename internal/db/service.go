@@ -1,6 +1,9 @@
 package db
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
@@ -15,10 +18,14 @@ type User struct {
 // Register 利用者を登録する。
 func Register(name string, username string, password string) error {
 
+	// パスワードをハッシュ化する。
+	passwordHash := md5.Sum([]byte(password))
+	passwordHashStr := hex.EncodeToString(passwordHash[:])
+
 	dbRes := db.Create(&User{
 		Name:     name,
 		Username: username,
-		Password: password,
+		Password: passwordHashStr,
 	})
 
 	return dbRes.Error
