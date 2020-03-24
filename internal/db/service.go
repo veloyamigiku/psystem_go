@@ -1,10 +1,8 @@
 package db
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/veloyamigiku/psystem/internal/auth"
 )
 
 // User usersテーブルの構造体。
@@ -19,8 +17,7 @@ type User struct {
 func Register(name string, username string, password string) error {
 
 	// パスワードをハッシュ化する。
-	passwordHash := md5.Sum([]byte(password))
-	passwordHashStr := hex.EncodeToString(passwordHash[:])
+	passwordHashStr := auth.FromStringToMD5(password)
 
 	dbRes := db.Create(&User{
 		Name:     name,
@@ -29,5 +26,15 @@ func Register(name string, username string, password string) error {
 	})
 
 	return dbRes.Error
+
+}
+
+// SearchUser 利用者を検索する。
+func SearchUser(name string) (user User, err error) {
+
+	dbRes := db.First(&user, "name = ?", name)
+	err = dbRes.Error
+
+	return
 
 }

@@ -9,17 +9,9 @@ import (
 	"strconv"
 
 	"github.com/veloyamigiku/psystem/internal/auth"
+	"github.com/veloyamigiku/psystem/internal/data_type"
 	"github.com/veloyamigiku/psystem/internal/db"
 )
-
-type RegisterJwt struct {
-	Token  string `json:"token"`
-	Result bool   `json:"result"`
-}
-
-type RegisterResult struct {
-	Result bool `json:"result"`
-}
 
 func main() {
 
@@ -93,24 +85,57 @@ func handleCurrentPoint(w http.ResponseWriter, r *http.Request) {
 // リクエストハンドラ（ログイン処理）。
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 
+	resultLogin := data_type.ResultLogin{
+		Result: false,
+		Token:  "",
+	}
+
 	// リクエストメソッドを確認する。
 	if r.Method != http.MethodPost {
-		internalError(w, `{"Result": false, "Token": null}`)
+		response(w, resultLogin)
 		return
 	}
 
 	// ログイン処理
 
+	postJSON, err := getPostJSON(r)
+	if err != nil {
+		response(w, resultLogin)
+		return
+	}
+	paramName := postJSON["name"].(string)
+	paramPassword := postJSON["password"].(string)
+
+	// ユーザ名でデータベースを検索する。
+	user, err := db.SearchUser(paramName)
+	if err != nil {
+		response(w, resultLogin)
+		return
+	}
+	passwordHash := user.Password
+
+	// パスワードをハッシュ化する。
+	paramPasswordHash := auth.FromStringToMD5(paramPassword)
+
+	// データベースのハッシュと上記のハッシュを比較する。
+	if passwordHash != paramPasswordHash {
+		response(w, resultLogin)
+		return
+	}
+
+	// JWTトークンを発行する。
+	token := auth.IssueJwt(30)
+
 	// ログイン処理結果を出力する。
-	resultLogin := ([]byte)(`{"Result": true, "Token": "hogehoge"}`)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(resultLogin)
+	resultLogin.Token = token
+	resultLogin.Result = true
+	response(w, resultLogin)
 }
 
 // リクエストハンドラ（利用者登録用_トークン発行）
 func handleIssueJwtForSignup(w http.ResponseWriter, r *http.Request) {
 
-	registerJwt := RegisterJwt{
+	registerJwt := data_type.ResultIssueRegisterJWT{
 		Result: false,
 	}
 
@@ -129,7 +154,7 @@ func handleIssueJwtForSignup(w http.ResponseWriter, r *http.Request) {
 // リクエストハンドラ（利用者登録）。
 func handleSignup(w http.ResponseWriter, r *http.Request) {
 
-	registerResult := RegisterResult{
+	registerResult := data_type.ResultRegister{
 		Result: false,
 	}
 
