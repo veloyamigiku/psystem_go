@@ -99,13 +99,19 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// ログイン処理
 
-	postJSON, err := getPostJSON(r)
+	// リクエストボディを取得する。
+	body, err := getRequestJSON(r)
 	if err != nil {
+		fmt.Println(err)
 		response(w, resultLogin)
 		return
 	}
-	paramName := postJSON["name"].(string)
-	paramPassword := postJSON["password"].(string)
+
+	// リクエストボディをオブジェクトに変換する。
+	var login data_type.PostLogin
+	json.Unmarshal(body, &login)
+	paramName := login.Name
+	paramPassword := login.Password
 
 	// ユーザ名でデータベースを検索する。
 	user, err := db.SearchUser(paramName)
@@ -167,17 +173,32 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("signup")
 
-	// リクエスト本体からJSONオブジェクトを取得する。
-	postJSON, err := getPostJSON(r)
+	// リクエストボディを取得する。
+	body, err := getRequestJSON(r)
 	if err != nil {
 		fmt.Println(err)
 		response(w, registerResult)
 		return
 	}
+
+	// リクエストボディをオブジェクトに変換する。
+	var user data_type.PostUser
+	json.Unmarshal(body, &user)
+
+	/*
+		// リクエスト本体からJSONオブジェクトを取得する。
+		postJSON, err := getPostJSON(r)
+		if err != nil {
+			fmt.Println(err)
+			response(w, registerResult)
+			return
+		}
+	*/
+
 	// debug code
-	paramName := postJSON["name"].(string)
-	paramPassword := postJSON["password"].(string)
-	paramUsername := postJSON["username"].(string)
+	paramName := user.Name
+	paramPassword := user.Password
+	paramUsername := user.UserName
 	fmt.Printf("paramName:%s\n", paramName)
 	fmt.Printf("paramPassword:%s\n", paramPassword)
 	fmt.Printf("paramUsername:%s\n", paramUsername)
@@ -215,44 +236,50 @@ func handlePointAdd(w http.ResponseWriter, r *http.Request) {
 		Count:  0,
 	}
 
+	// リクエストメソッドを確認する。
 	if r.Method != http.MethodPost {
 		response(w, resultPointAdd)
 		return
 	}
 
+	// リクエストボディ（JSON文字列）を取得する。
+	body, err := getRequestJSON(r)
+	if err != nil {
+		response(w, resultPointAdd)
+		return
+	}
+
+	// リクエストボディをオブジェクトに変換する。
+	var pointAdd []data_type.PostPointAdd
+	json.Unmarshal(body, &pointAdd)
+	fmt.Println(pointAdd)
+
+	// ポイント加算情報を保存する。
+
 	response(w, resultPointAdd)
 }
 
-// リクエスト本体（JSON文字列）をJSONオブジェクトに変換して返却する。
-func getPostJSON(r *http.Request) (
-	postJSON map[string]interface{},
-	err error) {
+func getRequestJSON(r *http.Request) (body []byte, err error) {
 
-	// リクエストヘッダをチェックする。
-	// Content-Typeが"application/json"であることを確認する。
+	// リクエストヘッダ（Content-Type）をチェックする。
 	if r.Header.Get("Content-Type") != "application/json" {
-		return nil, fmt.Errorf("Content-Type is not application/json.")
+		err = fmt.Errorf("Content-Type is not application/json.")
+		return
 	}
 
-	// リクエストヘッダをチェックする。
-	// Content-Lengthが数値であること確認する。
+	// リクエストヘッダ（Content-Length）を取得する。
 	length, err := strconv.Atoi(r.Header.Get("Content-Length"))
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	// リクエスト本体を取得する。
-	body := make([]byte, length)
+	body = make([]byte, length)
 	length, err = r.Body.Read(body)
 	if err != nil && err != io.EOF {
-		return nil, err
+		return
 	}
 
-	// リクエスト本体をJSONオブジェクト(map[string]interface)に変換する。
-	err = json.Unmarshal(body[:length], &postJSON)
-	if err != nil {
-		return nil, err
-	}
-
-	return postJSON, nil
+	err = nil
+	return
 }
