@@ -28,6 +28,7 @@ func main() {
 	http.HandleFunc("/psystem/login", handleLogin)
 	http.HandleFunc("/psystem/point/current", handleCurrentPoint)
 	http.HandleFunc("/psystem/point/log", handlePointLog)
+	http.HandleFunc("/psystem/point/add", handlePointAdd)
 	server.ListenAndServe()
 
 }
@@ -205,6 +206,21 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 	// 登録処理の結果を出力する。
 	registerResult.Result = true
 	response(w, registerResult)
+}
+
+func handlePointAdd(w http.ResponseWriter, r *http.Request) {
+
+	resultPointAdd := data_type.ResultPointAdd{
+		Result: false,
+		Count:  0,
+	}
+
+	if r.Method != http.MethodPost {
+		response(w, resultPointAdd)
+		return
+	}
+
+	response(w, resultPointAdd)
 }
 
 // リクエスト本体（JSON文字列）をJSONオブジェクトに変換して返却する。

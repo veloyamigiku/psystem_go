@@ -13,3 +13,10 @@ type ResultIssueRegisterJWT struct {
 type ResultRegister struct {
 	Result bool `json:"result"`
 }
+
+type ResultPointAdd struct {
+	// ポイント加算情報の登録結果。
+	Result bool `json:"result"`
+	// ポイント加算情報の登録件数。
+	Count int `json:"count"`
+}
