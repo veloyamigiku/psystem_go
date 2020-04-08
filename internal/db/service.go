@@ -31,3 +31,23 @@ func SearchUser(name string) (user data_type.User, err error) {
 	return
 
 }
+
+// AddPointHistory ポイント操作情報を登録する。
+func AddPointHistory(pointAdds []data_type.PostPointHistory) (addCount int, err error) {
+
+	addCount = 0
+	for _, pointAdd := range pointAdds {
+		dbRes := db.Create(&data_type.PointHistory{
+			UserID: pointAdd.UserID,
+			Date:   pointAdd.Date,
+			Detail: pointAdd.Detail,
+			Point:  pointAdd.Point,
+		})
+		if dbRes.Error != nil {
+			return
+		}
+		addCount++
+	}
+
+	return
+}

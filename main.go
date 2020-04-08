@@ -25,7 +25,7 @@ func main() {
 	http.HandleFunc("/psystem/login", handleLogin)
 	http.HandleFunc("/psystem/point/current", handleCurrentPoint)
 	http.HandleFunc("/psystem/point/log", handlePointLog)
-	http.HandleFunc("/psystem/point/add", handlePointAdd)
+	http.HandleFunc("/psystem/point/add_history", handleAddPointHistory)
 
 	// (create key)openssl genrsa -out https.key 2048
 	// (create crt)
@@ -236,34 +236,40 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 	response(w, registerResult)
 }
 
-func handlePointAdd(w http.ResponseWriter, r *http.Request) {
+func handleAddPointHistory(w http.ResponseWriter, r *http.Request) {
 
-	resultPointAdd := data_type.ResultPointAdd{
+	resultAddPointHistory := data_type.ResultAddPointHistory{
 		Result: false,
 		Count:  0,
 	}
 
 	// リクエストメソッドを確認する。
 	if r.Method != http.MethodPost {
-		response(w, resultPointAdd)
+		response(w, resultAddPointHistory)
 		return
 	}
 
 	// リクエストボディ（JSON文字列）を取得する。
 	body, err := getRequestJSON(r)
 	if err != nil {
-		response(w, resultPointAdd)
+		response(w, resultAddPointHistory)
 		return
 	}
 
 	// リクエストボディをオブジェクトに変換する。
-	var pointAdd []data_type.PostPointAdd
-	json.Unmarshal(body, &pointAdd)
-	fmt.Println(pointAdd)
+	var pointAdds []data_type.PostPointHistory
+	json.Unmarshal(body, &pointAdds)
 
-	// ポイント加算情報を保存する。
+	// ポイント操作情報を保存する。
+	addCount, err := db.AddPointHistory(pointAdds)
+	if err != nil {
+		resultAddPointHistory.Result = false
+	} else {
+		resultAddPointHistory.Result = true
+	}
+	resultAddPointHistory.Count = addCount
 
-	response(w, resultPointAdd)
+	response(w, resultAddPointHistory)
 }
 
 func getRequestJSON(r *http.Request) (body []byte, err error) {

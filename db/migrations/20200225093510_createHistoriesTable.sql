@@ -4,7 +4,7 @@
 create table point_histories (
     id serial primary key,
     user_id serial references users(id),
-    date timestamp with time zone,
+    date integer,
     detail text,
     point integer
 );

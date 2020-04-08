@@ -17,11 +17,11 @@ type ResultLogin struct {
 	Token  string `json:"token"`
 }
 
-// ResultPointAdd ポイント加算結果の構造体。
-type ResultPointAdd struct {
-	// ポイント加算情報の登録結果。
+// ResultAddPointHistory ポイント操作情報登録結果の構造体。
+type ResultAddPointHistory struct {
+	// ポイント操作情報の登録結果。
 	Result bool `json:"result"`
-	// ポイント加算情報の登録件数。
+	// ポイント操作情報の登録件数。
 	Count int `json:"count"`
 }
 
@@ -38,8 +38,8 @@ type PostLogin struct {
 	Password string `json:"password"`
 }
 
-// PostPointAdd 送信ポイント加算情報の構造体。
-type PostPointAdd struct {
+// PostPointHistory 送信ポイント操作情報の構造体。
+type PostPointHistory struct {
 	UserID int    `json:"user_id"`
 	Date   int    `json:"date"`
 	Detail string `json:"detail"`
@@ -52,4 +52,13 @@ type User struct {
 	Name     string `gorm:"NOT NULL" gorm:"UNIQUE"`
 	Username string `gorm:"NOT NULL"`
 	Password string `gorm:"NOT NULL"`
+}
+
+// PointHistory point_historiesテーブル用の構造体。
+type PointHistory struct {
+	ID     int    `gorm:"PRIMARY_KEY" gorm:"AUTO_INCREMENT"`
+	UserID int    `gorm:"NOT NULL"`
+	Date   int    `gorm:"NOT NULL"`
+	Detail string `gorm:"NOT NULL"`
+	Point  int    `gorm:"NOT NULL"`
 }
