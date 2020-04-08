@@ -17,19 +17,26 @@ func main() {
 
 	serverPort := os.Getenv("PORT")
 	if serverPort == "" {
-		serverPort = "8080"
+		serverPort = "443"
 	}
 
-	server := http.Server{
-		Addr: ":" + serverPort,
-	}
 	http.HandleFunc("/psystem/issue_jwt_for_signup", handleIssueJwtForSignup)
 	http.HandleFunc("/psystem/signup", handleSignup)
 	http.HandleFunc("/psystem/login", handleLogin)
 	http.HandleFunc("/psystem/point/current", handleCurrentPoint)
 	http.HandleFunc("/psystem/point/log", handlePointLog)
 	http.HandleFunc("/psystem/point/add", handlePointAdd)
-	server.ListenAndServe()
+
+	// (create key)openssl genrsa -out https.key 2048
+	// (create crt)
+	err := http.ListenAndServeTLS(
+		":"+serverPort,
+		"https.crt",
+		"https.key",
+		nil)
+	if err != nil {
+		panic(err)
+	}
 
 }
 

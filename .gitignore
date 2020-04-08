@@ -1,1 +1,6 @@
 vendor
+id_rsa
+id_rsa.pub
+id.pub.pkcs8
+https.crt
+https.key
