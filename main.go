@@ -22,9 +22,19 @@ func main() {
 
 	http.HandleFunc("/psystem/issue_jwt_for_signup", handleIssueJwtForSignup)
 	http.HandleFunc("/psystem/signup", handleSignup)
+
+	http.HandleFunc("/psystem/issue_jwt_for_point_operator_signup", handleIssueJWTForPointOperatorSignup)
+	http.HandleFunc("/psystem/signup_for_point_operator", handleSignupForPointOperator)
+
+	http.HandleFunc("/psystem/issue_jwt_for_user_login", handleIssueJwtForUserLogin)
 	http.HandleFunc("/psystem/login", handleLogin)
+
 	http.HandleFunc("/psystem/point/current", handleCurrentPoint)
 	http.HandleFunc("/psystem/point/log", handlePointLog)
+
+	http.HandleFunc("/psystem/issue_jwt_for_point_operator_login", handleIssueJwtForPointOperatorLogin)
+	http.HandleFunc("/psystem/login_for_point_operator", handleLoginForPointOperator)
+
 	http.HandleFunc("/psystem/point/add_history", handleAddPointHistory)
 
 	// (create key)openssl genrsa -out https.key 2048
@@ -90,12 +100,37 @@ func handleCurrentPoint(w http.ResponseWriter, r *http.Request) {
 	w.Write(resultCurrentPoint)
 }
 
+// リクエストハンドラ（利用者ログイン用_トークン発行）
+func handleIssueJwtForUserLogin(w http.ResponseWriter, r *http.Request) {
+
+	result := data_type.ResultIssueUserLoginJWT{
+		Result: false,
+	}
+
+	if r.Method != http.MethodGet {
+		response(w, result)
+		return
+	}
+
+	token := auth.IssueJwt(5)
+	result.Result = true
+	result.Token = token
+
+	response(w, result)
+
+}
+
 // リクエストハンドラ（ログイン処理）。
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	resultLogin := data_type.ResultLogin{
 		Result: false,
 		Token:  "",
+	}
+
+	token := r.Header.Get("Authorization")
+	if !auth.ValidateJwt(token) {
+		response(w, resultLogin)
 	}
 
 	// リクエストメソッドを確認する。
@@ -138,12 +173,81 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// JWTトークンを発行する。
-	token := auth.IssueJwt(30)
+	newToken := auth.IssueJwt(30)
 
 	// ログイン処理結果を出力する。
-	resultLogin.Token = token
+	resultLogin.Token = newToken
 	resultLogin.Result = true
 	response(w, resultLogin)
+}
+
+// リクエストハンドラ（ポイント操作元ログイン用_トークン発行）
+func handleIssueJwtForPointOperatorLogin(w http.ResponseWriter, r *http.Request) {
+
+	result := data_type.ResultIssuePointOperatorLoginJWT{
+		Result: false,
+	}
+
+	if r.Method != http.MethodGet {
+		response(w, result)
+		return
+	}
+
+	token := auth.IssueJwt(5)
+	result.Result = true
+	result.Token = token
+
+	response(w, result)
+
+}
+
+// リクエストハンドラ（ログイン処理_ポイント操作元）
+func handleLoginForPointOperator(w http.ResponseWriter, r *http.Request) {
+
+	result := data_type.ResultLoginForPointOperator{
+		Result: false,
+	}
+
+	if r.Method != http.MethodPost {
+		response(w, result)
+		return
+	}
+
+	token := r.Header.Get("Authorization")
+	if !auth.ValidateJwt(token) {
+		response(w, result)
+		return
+	}
+
+	body, err := getRequestJSON(r)
+	if err != nil {
+		response(w, result)
+		return
+	}
+
+	var pointOperator data_type.PointOperator
+	json.Unmarshal(body, &pointOperator)
+
+	searchPointOperator, err := db.SearchPointOperator(pointOperator.Name)
+	if err != nil {
+		fmt.Println(err)
+		response(w, result)
+		return
+	}
+
+	hashedPassword := auth.FromStringToMD5(pointOperator.Password)
+	if hashedPassword != searchPointOperator.Password {
+		fmt.Print("password compare error.")
+		response(w, result)
+		return
+	}
+
+	newToken := auth.IssueJwt(30)
+	result.Result = true
+	result.Token = newToken
+
+	response(w, result)
+
 }
 
 // リクエストハンドラ（利用者登録用_トークン発行）
@@ -234,6 +338,65 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 	// 登録処理の結果を出力する。
 	registerResult.Result = true
 	response(w, registerResult)
+}
+
+// リクエストハンドラ（ポイント操作元登録用_トークン発行）
+func handleIssueJWTForPointOperatorSignup(w http.ResponseWriter, r *http.Request) {
+
+	result := data_type.ResultIssueRegisterJWTForPointOperator{
+		Result: false,
+	}
+
+	if r.Method != http.MethodGet {
+		response(w, result)
+		return
+	}
+
+	token := auth.IssueJwt(5)
+	result.Result = true
+	result.Token = token
+
+	response(w, result)
+
+}
+
+// リクエストハンドラ（ポイント操作元登録）。
+func handleSignupForPointOperator(w http.ResponseWriter, r *http.Request) {
+
+	result := data_type.ResultRegisterForPointOperator{
+		Result: false,
+	}
+
+	if r.Method != http.MethodPost {
+		response(w, result)
+		return
+	}
+
+	token := r.Header.Get("Authorization")
+	if !auth.ValidateJwt(token) {
+		response(w, result)
+	}
+
+	fmt.Println("signup for Point Operator")
+
+	body, err := getRequestJSON(r)
+	if err != nil {
+		response(w, result)
+		return
+	}
+
+	var pointOperator data_type.PostPointOperator
+	json.Unmarshal(body, &pointOperator)
+
+	err = db.RegisterPointOperator(pointOperator)
+	if err != nil {
+		response(w, result)
+		return
+	}
+
+	result.Result = true
+	response(w, result)
+
 }
 
 func handleAddPointHistory(w http.ResponseWriter, r *http.Request) {

@@ -32,6 +32,29 @@ func SearchUser(name string) (user data_type.User, err error) {
 
 }
 
+// SearchPointOperator ポイント操作元を検索する。
+func SearchPointOperator(name string) (pointOperator data_type.PointOperator, err error) {
+
+	dbRes := db.First(&pointOperator, "name = ?", name)
+	err = dbRes.Error
+
+	return
+}
+
+// RegisterPointOperator ポイント操作元を登録する。
+func RegisterPointOperator(pointOperator data_type.PostPointOperator) (err error) {
+
+	hashed_password := auth.FromStringToMD5(pointOperator.Password)
+
+	dbRes := db.Create(&data_type.PointOperator{
+		Name:     pointOperator.Name,
+		Password: hashed_password,
+	})
+	err = dbRes.Error
+
+	return
+}
+
 // AddPointHistory ポイント操作情報を登録する。
 func AddPointHistory(pointAdds []data_type.PostPointHistory) (addCount int, err error) {
 

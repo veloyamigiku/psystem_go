@@ -11,6 +11,35 @@ type ResultRegister struct {
 	Result bool `json:"result"`
 }
 
+// ResultIssueRegisterJWTForPointOperator ポイント操作元登録用のトークン発行結果の構造体。
+type ResultIssueRegisterJWTForPointOperator struct {
+	Result bool   `json:"result"`
+	Token  string `json:"token"`
+}
+
+// ResultRegisterForPointOperator ポイント操作元登録結果の構造体。
+type ResultRegisterForPointOperator struct {
+	Result bool `json:"result"`
+}
+
+// ResultIssueUserLoginJWT 利用者ログイン用のトークン発行結果の構造体。
+type ResultIssueUserLoginJWT struct {
+	Result bool   `json:"result"`
+	Token  string `json:"token"`
+}
+
+// ResultIssuePointOperatorLoginJWT ポイント操作元ログイン用のトークン発行結果の構造体。
+type ResultIssuePointOperatorLoginJWT struct {
+	Result bool   `json:"result"`
+	Token  string `json:"token"`
+}
+
+// ResultLoginForPointOperator ログイン結果（ポイント操作元）の構造体。
+type ResultLoginForPointOperator struct {
+	Result bool   `json:"result"`
+	Token  string `json:"token"`
+}
+
 // ResultLogin ログイン結果の構造体。
 type ResultLogin struct {
 	Result bool   `json:"result"`
@@ -32,6 +61,12 @@ type PostUser struct {
 	UserName string `json:"username"`
 }
 
+// PostPointOperator 送信ポイント操作元情報の構造体。
+type PostPointOperator struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
 // PostLogin 送信ログイン情報の構造体。
 type PostLogin struct {
 	Name     string `json:"name"`
@@ -51,6 +86,13 @@ type User struct {
 	ID       int    `gorm:"PRIMARY_KEY" gorm:"AUTO_INCREMENT"`
 	Name     string `gorm:"NOT NULL" gorm:"UNIQUE"`
 	Username string `gorm:"NOT NULL"`
+	Password string `gorm:"NOT NULL"`
+}
+
+// PointOperator ポイント操作元の構造体。
+type PointOperator struct {
+	ID       int    `gorm:"PRIMARY_KEY" gorm:"AUTO_INCREMENT"`
+	Name     string `gorm:"NOT NULL" gorm:"UNIQUE"`
 	Password string `gorm:"NOT NULL"`
 }
 
