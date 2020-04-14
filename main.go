@@ -38,7 +38,7 @@ func main() {
 	http.HandleFunc("/psystem/point/add_history", handleAddPointHistory)
 
 	// (create key)openssl genrsa -out https.key 2048
-	// (create crt)
+	// (create crt)openssl req -new -x509 -sha256 -key https.key -out https.crt -days 3650
 	err := http.ListenAndServeTLS(
 		":"+serverPort,
 		"https.crt",
