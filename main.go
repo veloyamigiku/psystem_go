@@ -20,20 +20,20 @@ func main() {
 		serverPort = "443"
 	}
 
-	http.HandleFunc("/psystem/issue_jwt_for_signup", handleIssueJwtForSignup)
-	http.HandleFunc("/psystem/signup", handleSignup)
+	http.HandleFunc("/psystem/user/issue_jwt_for_signup", handleIssueJwtForUserSignup)
+	http.HandleFunc("/psystem/user/signup", handleUserSignup)
 
-	http.HandleFunc("/psystem/issue_jwt_for_point_operator_signup", handleIssueJWTForPointOperatorSignup)
-	http.HandleFunc("/psystem/signup_for_point_operator", handleSignupForPointOperator)
+	http.HandleFunc("/psystem/point_operator/issue_jwt_for_signup", handleIssueJWTForPointOperatorSignup)
+	http.HandleFunc("/psystem/point_operator/signup", handleSignupForPointOperator)
 
-	http.HandleFunc("/psystem/issue_jwt_for_user_login", handleIssueJwtForUserLogin)
-	http.HandleFunc("/psystem/login", handleLogin)
+	http.HandleFunc("/psystem/user/issue_jwt_for_login", handleIssueJwtForUserLogin)
+	http.HandleFunc("/psystem/user/login", handleUserLogin)
 
 	http.HandleFunc("/psystem/point/current", handleCurrentPoint)
 	http.HandleFunc("/psystem/point/log", handlePointLog)
 
-	http.HandleFunc("/psystem/issue_jwt_for_point_operator_login", handleIssueJwtForPointOperatorLogin)
-	http.HandleFunc("/psystem/login_for_point_operator", handleLoginForPointOperator)
+	http.HandleFunc("/psystem/point_operator/issue_jwt_for_login", handleIssueJwtForPointOperatorLogin)
+	http.HandleFunc("/psystem/point_operator/login", handlePointOperatorLogin)
 
 	http.HandleFunc("/psystem/point/add_history", handleAddPointHistory)
 
@@ -121,7 +121,7 @@ func handleIssueJwtForUserLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 // リクエストハンドラ（ログイン処理）。
-func handleLogin(w http.ResponseWriter, r *http.Request) {
+func handleUserLogin(w http.ResponseWriter, r *http.Request) {
 
 	resultLogin := data_type.ResultLogin{
 		Result: false,
@@ -202,7 +202,7 @@ func handleIssueJwtForPointOperatorLogin(w http.ResponseWriter, r *http.Request)
 }
 
 // リクエストハンドラ（ログイン処理_ポイント操作元）
-func handleLoginForPointOperator(w http.ResponseWriter, r *http.Request) {
+func handlePointOperatorLogin(w http.ResponseWriter, r *http.Request) {
 
 	result := data_type.ResultLoginForPointOperator{
 		Result: false,
@@ -251,7 +251,7 @@ func handleLoginForPointOperator(w http.ResponseWriter, r *http.Request) {
 }
 
 // リクエストハンドラ（利用者登録用_トークン発行）
-func handleIssueJwtForSignup(w http.ResponseWriter, r *http.Request) {
+func handleIssueJwtForUserSignup(w http.ResponseWriter, r *http.Request) {
 
 	registerJwt := data_type.ResultIssueRegisterJWT{
 		Result: false,
@@ -270,7 +270,7 @@ func handleIssueJwtForSignup(w http.ResponseWriter, r *http.Request) {
 }
 
 // リクエストハンドラ（利用者登録）。
-func handleSignup(w http.ResponseWriter, r *http.Request) {
+func handleUserSignup(w http.ResponseWriter, r *http.Request) {
 
 	registerResult := data_type.ResultRegister{
 		Result: false,
