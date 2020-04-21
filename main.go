@@ -8,6 +8,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/dgrijalva/jwt-go"
+
 	"github.com/veloyamigiku/psystem/internal/auth"
 	"github.com/veloyamigiku/psystem/internal/data_type"
 	"github.com/veloyamigiku/psystem/internal/db"
@@ -128,8 +130,9 @@ func handleUserLogin(w http.ResponseWriter, r *http.Request) {
 		Token:  "",
 	}
 
-	token := r.Header.Get("Authorization")
-	if !auth.ValidateJwt(token) {
+	tokenString := r.Header.Get("Authorization")
+	_, err := auth.ValidateJwt(tokenString)
+	if err != nil {
 		response(w, resultLogin)
 	}
 
@@ -173,7 +176,11 @@ func handleUserLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// JWTトークンを発行する。
-	newToken := auth.IssueJwt(30)
+	newToken, err := auth.IssueJwtAfterLogin(30, user.Name)
+	if err != nil {
+		response(w, resultLogin)
+		return
+	}
 
 	// ログイン処理結果を出力する。
 	resultLogin.Token = newToken
@@ -213,8 +220,9 @@ func handlePointOperatorLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := r.Header.Get("Authorization")
-	if !auth.ValidateJwt(token) {
+	tokenString := r.Header.Get("Authorization")
+	_, err := auth.ValidateJwt(tokenString)
+	if err != nil {
 		response(w, result)
 		return
 	}
@@ -242,7 +250,12 @@ func handlePointOperatorLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newToken := auth.IssueJwt(30)
+	newToken, err := auth.IssueJwtAfterLogin(30, searchPointOperator.Name)
+	if err != nil {
+		fmt.Print(err)
+		response(w, result)
+		return
+	}
 	result.Result = true
 	result.Token = newToken
 
@@ -318,7 +331,8 @@ func handleUserSignup(w http.ResponseWriter, r *http.Request) {
 	authorization := r.Header.Get("Authorization")
 	fmt.Printf("Authorization:%s\n", authorization)
 	// JWTトークンを検証する。
-	if !auth.ValidateJwt(authorization) {
+	_, err = auth.ValidateJwt(authorization)
+	if err != nil {
 		fmt.Println(fmt.Errorf("JWT is invalid"))
 		response(w, registerResult)
 		return
@@ -372,8 +386,9 @@ func handleSignupForPointOperator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := r.Header.Get("Authorization")
-	if !auth.ValidateJwt(token) {
+	tokenString := r.Header.Get("Authorization")
+	_, err := auth.ValidateJwt(tokenString)
+	if err != nil {
 		response(w, result)
 	}
 
@@ -408,6 +423,21 @@ func handleAddPointHistory(w http.ResponseWriter, r *http.Request) {
 
 	// リクエストメソッドを確認する。
 	if r.Method != http.MethodPost {
+		response(w, resultAddPointHistory)
+		return
+	}
+
+	// トークンを検証する。
+	tokenString := r.Header.Get("Authorization")
+	token, err := auth.ValidateJwt(tokenString)
+	if err != nil {
+		response(w, resultAddPointHistory)
+		return
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	pointOperatorName := claims["name"].(string)
+	_, err = db.SearchPointOperator(pointOperatorName)
+	if err != nil {
 		response(w, resultAddPointHistory)
 		return
 	}
